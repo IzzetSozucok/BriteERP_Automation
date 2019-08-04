@@ -2,7 +2,7 @@ package com.BriteERP.pages;
 
 public class CRMPage {
     public static void main(String[] args) {
-        System.out.println("mustafa");
+        System.out.println("mustafakaya");
     }
 
 }
