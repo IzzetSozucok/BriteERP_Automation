@@ -1,5 +1,6 @@
 package com.BriteERP.utilities;
 
+import com.BriteERP.pages.LoginPage;
 import com.aventstack.extentreports.ExtentReports;
 import com.aventstack.extentreports.ExtentTest;
 import com.aventstack.extentreports.reporter.ExtentHtmlReporter;
@@ -17,50 +18,53 @@ import java.util.concurrent.TimeUnit;
 public class TestBase {
 
     //should be public/protected !!!!
-    public WebDriver driver;
-    public Actions action;
 
-    //we need this objects for reports
+    public Actions action;
+    //we need this object for building reports, but it doesn't build itself
     protected ExtentReports report;
     protected ExtentHtmlReporter htmlReporter;
     protected ExtentTest extentLogger;
 
-
     @BeforeTest
     public void testSetup(){
+        LoginPage loginPage = new LoginPage();
         //we are creating actual reporter
         report = new ExtentReports();
+        //this is path to the report itself
+        //String pathToReport="C:\\Users\\izzet\\Desktop\\Cybertek\\BriteERPautomation\\test-output\\report.html";
         String pathToReport = System.getProperty("user.dir")+"/test-output/report.html";
+
         htmlReporter = new ExtentHtmlReporter(pathToReport);
-
         report.attachReporter(htmlReporter);
-
-        //we can add system information to report
         report.setSystemInfo("OS", System.getProperty("os.name"));
-        htmlReporter.config().setDocumentTitle("VYTrack Test Automation");
-
+        htmlReporter.config().setDocumentTitle("BriteERB Test Automation");
+        System.out.println(pathToReport);
     }
     @BeforeMethod
     public void setup(){
-        driver = Driver.getDriver();
-        action = new Actions(driver);
-        driver.manage().timeouts().implicitlyWait(Long.valueOf(ConfigurationReader.getProperty("implicitwait")), TimeUnit.SECONDS);
-        driver.manage().window().maximize();
-        driver.get(ConfigurationReader.getProperty("url"));
-    }
 
-    //ITestResult describes the result of a test.
-    //we can determine if test failed, passed or ignored
+        Driver.getDriver().manage().timeouts().implicitlyWait(Long.valueOf(ConfigurationReader.getProperty("implicitwait")), TimeUnit.SECONDS);
+        Driver.getDriver().manage().window().maximize();
+        Driver.getDriver().get(ConfigurationReader.getProperty("url"));
+        LoginPage loginPage = new LoginPage();
+        action = new Actions(Driver.getDriver());
+        String username = ConfigurationReader.getProperty("storemanagerusername");
+        String password = ConfigurationReader.getProperty("storemanagerpassword");
+        loginPage.login(username, password);
+
+    }
     @AfterMethod
     public void teardown(ITestResult result){
         if(ITestResult.FAILURE == result.getStatus()) {
             //if test failed get a screenshot and save the location to the image
             String pathToTheScreenshot = SeleniumUtils.getScreenshot(result.getName());
+
             // capture the name of a test method that failed
             extentLogger.fail(result.getName());
             try {
                 //to add screenshot into report
                 extentLogger.addScreenCaptureFromPath(pathToTheScreenshot);
+                // System.out.println("hello");
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -75,7 +79,7 @@ public class TestBase {
 
     @AfterTest
     public void tearDownTest(){
+
         report.flush();
     }
-
 }
